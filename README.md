@@ -29,3 +29,7 @@ Python & Django project to get r/wallstreetbets comments, analyize sentiment, an
 - py manage.py runserver
 ## Django Tutorial
 - For more information, visit https://www.w3schools.com/django/index.php
+## install nltk
+- py -3 -m pip install nltk
+## Sentiment Tutorial
+- https://www.datacamp.com/tutorial/text-analytics-beginners-nltk
