@@ -1,14 +1,9 @@
 import praw
+from datetime import datetime
 from config import CLIENT_ID, CLIENT_SECRET, USER_AGENT, USERNAME, PASSWORD
 
-def extract_comments(comment):
-    # Recursive function to extract comments and replies
-    comments = [comment.body]
-    for reply in comment.replies:
-        comments.extend(extract_comments(reply))
-    return comments
 
-def get_reddit_comments():
+def get_reddit_data():
     # Initialize PRAW
     reddit = praw.Reddit(
         client_id=CLIENT_ID,
@@ -18,22 +13,37 @@ def get_reddit_comments():
         password=PASSWORD
     )
 
-    # Specify the URL of the Reddit post
-    post_url = 'https://new.reddit.com/r/wallstreetbets/comments/182ay78/what_are_your_recipes_tomorrow_november_24th_2022/'
+    # Specify the subreddit
+    subreddit = reddit.subreddit('wallstreetbets')
 
-    # Extract the post ID from the URL
-    post_id = post_url.split('/')[-3]
+    # Get the most recent 50 posts
+    recent_items = subreddit.new(limit=50)
+    # Get the most recent 50 comments
+    # recent_items = subreddit.comments(limit=50)
 
-    # Fetch the post
-    submission = reddit.submission(id=post_id)
+    # Process and return relevant information from the items
+    data_info = []
 
-    # Process and return the comments
-    return [comment.body for comment in submission.comments.list() if not isinstance(comment, praw.models.MoreComments)]
+    for item in recent_items:
+        if isinstance(item, praw.models.Submission):
+            # For posts
+            data_info.append({'type': 'post',
+                              'timestamp': datetime.utcfromtimestamp(item.created_utc),
+                              'title': item.title,
+                              'url': item.url})
+        elif isinstance(item, praw.models.Comment):
+            # For comments
+            data_info.append({'type': 'comment',
+                              'timestamp': datetime.utcfromtimestamp(item.created_utc),
+                              'body': item.body})
+
+    return data_info
+
 
 if __name__ == "__main__":
     # Call your function here
-    reddit_comments = get_reddit_comments()
+    reddit_data = get_reddit_data()
 
-    # Example: Print the retrieved comments
-    for comment in reddit_comments:
-        print(comment)
+    # Example: Print the retrieved data
+    for data_item in reddit_data:
+        print(data_item)
